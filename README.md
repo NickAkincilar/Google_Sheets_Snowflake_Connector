@@ -7,7 +7,7 @@ Install it by making a local copy of the Sheet with the App Script and allowing 
 
 ### Steps:
 1. **Click this link:** [Snowflake Connector Template](https://docs.google.com/spreadsheets/d/1TUO_-nBQYKkQTxJkwbZW-VZkf1LkkITHjpfjl7B3RmY/edit?usp=sharing) 
-2. **File > Make a copy of template Google Template Sheets**
+2. **File > Make a copy**  (Creates an editable copy in your Google drive)
 3. **Refresh the page**
 4. **Snowflake menu appears!**
 5. **Configure your credentials**
