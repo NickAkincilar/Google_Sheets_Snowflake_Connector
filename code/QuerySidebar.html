@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      padding: 15px;
+      margin: 0;
+      background-color: #f5f5f5;
+    }
+    
+    .section {
+      background: white;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 8px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    
+    h3 {
+      color: #1a73e8;
+      margin: 0 0 15px 0;
+      font-size: 16px;
+      border-bottom: 2px solid #1a73e8;
+      padding-bottom: 8px;
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #5f6368;
+      font-weight: 500;
+      font-size: 13px;
+    }
+    
+    select {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 13px;
+      background-color: white;
+      cursor: pointer;
+      box-sizing: border-box;
+    }
+    
+    select:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+    }
+    
+    select:disabled {
+      background-color: #f5f5f5;
+      cursor: not-allowed;
+    }
+    
+    input[type="number"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 13px;
+      box-sizing: border-box;
+    }
+    
+    button {
+      width: 100%;
+      padding: 10px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+      margin-bottom: 10px;
+    }
+    
+    .btn-primary {
+      background-color: #1a73e8;
+      color: white;
+    }
+    
+    .btn-primary:hover:not(:disabled) {
+      background-color: #1557b0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .btn-primary:disabled {
+      background-color: #dadce0;
+      cursor: not-allowed;
+    }
+    
+    .btn-secondary {
+      background-color: #34a853;
+      color: white;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #2d8e47;
+    }
+    
+    textarea {
+      width: 100%;
+      min-height: 100px;
+      padding: 8px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-family: 'Courier New', monospace;
+      font-size: 12px;
+      resize: vertical;
+      box-sizing: border-box;
+    }
+    
+    textarea:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+    }
+    
+    .checkbox-group {
+      display: flex;
+      align-items: center;
+      margin-top: 10px;
+    }
+    
+    .checkbox-group input[type="checkbox"] {
+      margin-right: 8px;
+    }
+    
+    .checkbox-group label {
+      margin: 0;
+      cursor: pointer;
+    }
+    
+    .message {
+      padding: 10px;
+      border-radius: 4px;
+      margin-bottom: 15px;
+      font-size: 13px;
+      display: none;
+    }
+    
+    .message.success {
+      background-color: #e6f4ea;
+      color: #137333;
+      border: 1px solid #34a853;
+    }
+    
+    .message.error {
+      background-color: #fce8e6;
+      color: #c5221f;
+      border: 1px solid #d93025;
+    }
+    
+    .message.info {
+      background-color: #e8f0fe;
+      color: #1967d2;
+      border: 1px solid #1a73e8;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 10px;
+    }
+    
+    .spinner {
+      border: 2px solid #f3f3f3;
+      border-top: 2px solid #1a73e8;
+      border-radius: 50%;
+      width: 20px;
+      height: 20px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    
+    .helper-text {
+      font-size: 11px;
+      color: #5f6368;
+      margin-top: 4px;
+    }
+  </style>
+</head>
+<body>
+  <div id="message" class="message"></div>
+  
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <p style="font-size: 12px; color: #5f6368; margin: 8px 0 0 0;">Loading...</p>
+  </div>
+  
+  <div class="section">
+    <h3>📊 Table Browser</h3>
+    
+    <div class="form-group">
+      <label for="database">Database:</label>
+      <select id="database" onchange="onDatabaseChange()">
+        <option value="">-- Select Database --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="schema">Schema:</label>
+      <select id="schema" onchange="onSchemaChange()" disabled>
+        <option value="">-- Select Schema --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="table">Table:</label>
+      <select id="table" disabled>
+        <option value="">-- Select Table --</option>
+      </select>
+    </div>
+    
+    <div class="form-group">
+      <label for="limit">Row Limit (0 = no limit):</label>
+      <input type="number" id="limit" value="1000" min="0">
+      <div class="helper-text">Limit number of rows to fetch</div>
+    </div>
+    
+    <button class="btn-primary" onclick="fetchData()" id="fetchBtn" disabled>
+      📥 Fetch Data to Sheet
+    </button>
+  </div>
+  
+  <div class="section">
+    <h3>✍️ Custom Query</h3>
+    
+    <div class="form-group">
+      <label for="customQuery">SQL Query:</label>
+      <textarea id="customQuery" placeholder="SELECT * FROM database.schema.table LIMIT 100"></textarea>
+    </div>
+    
+    <div class="checkbox-group">
+      <input type="checkbox" id="clearSheet" checked>
+      <label for="clearSheet">Clear sheet before inserting data</label>
+    </div>
+    
+    <button class="btn-secondary" onclick="executeQuery()">
+      ▶️ Execute Query
+    </button>
+  </div>
+  
+  <div class="section">
+    <button class="btn-primary" onclick="refreshDatabases()">
+      🔄 Refresh Database List
+    </button>
+  </div>
+  
+  <script>
+    let databases = [];
+    let schemas = [];
+    let tables = [];
+    
+    // Load databases on page load
+    window.onload = function() {
+      loadDatabases();
+    };
+    
+    function loadDatabases() {
+      showLoading(true);
+      google.script.run
+        .withSuccessHandler(onDatabasesLoaded)
+        .withFailureHandler(onError)
+        .getDatabases();
+    }
+    
+    function onDatabasesLoaded(result) {
+      showLoading(false);
+      
+      if (result.success) {
+        databases = result.data || [];
+        const select = document.getElementById('database');
+        select.innerHTML = '<option value="">-- Select Database --</option>';
+        
+        databases.forEach(db => {
+          const option = document.createElement('option');
+          option.value = db;
+          option.textContent = db;
+          select.appendChild(option);
+        });
+        
+        if (databases.length === 0) {
+          showMessage('No databases found. Check your permissions.', 'info');
+        } else {
+          showMessage(`Loaded ${databases.length} databases`, 'success');
+        }
+      } else {
+        showMessage('Error loading databases: ' + result.error, 'error');
+      }
+    }
+    
+    function onDatabaseChange() {
+      const database = document.getElementById('database').value;
+      const schemaSelect = document.getElementById('schema');
+      const tableSelect = document.getElementById('table');
+      
+      // Reset schema and table
+      schemaSelect.innerHTML = '<option value="">-- Select Schema --</option>';
+      tableSelect.innerHTML = '<option value="">-- Select Table --</option>';
+      tableSelect.disabled = true;
+      document.getElementById('fetchBtn').disabled = true;
+      
+      if (!database) {
+        schemaSelect.disabled = true;
+        return;
+      }
+      
+      schemaSelect.disabled = false;
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(onSchemasLoaded)
+        .withFailureHandler(onError)
+        .getSchemas(database);
+    }
+    
+    function onSchemasLoaded(result) {
+      showLoading(false);
+      
+      if (result.success) {
+        schemas = result.data || [];
+        const select = document.getElementById('schema');
+        
+        schemas.forEach(schema => {
+          const option = document.createElement('option');
+          option.value = schema;
+          option.textContent = schema;
+          select.appendChild(option);
+        });
+        
+        if (schemas.length === 0) {
+          showMessage('No schemas found in this database', 'info');
+        } else {
+          showMessage(`Loaded ${schemas.length} schemas`, 'success');
+        }
+      } else {
+        showMessage('Error loading schemas: ' + result.error, 'error');
+      }
+    }
+    
+    function onSchemaChange() {
+      const database = document.getElementById('database').value;
+      const schema = document.getElementById('schema').value;
+      const tableSelect = document.getElementById('table');
+      
+      // Reset table
+      tableSelect.innerHTML = '<option value="">-- Select Table --</option>';
+      document.getElementById('fetchBtn').disabled = true;
+      
+      if (!schema) {
+        tableSelect.disabled = true;
+        return;
+      }
+      
+      tableSelect.disabled = false;
+      showLoading(true);
+      
+      google.script.run
+        .withSuccessHandler(onTablesLoaded)
+        .withFailureHandler(onError)
+        .getTables(database, schema);
+    }
+    
+    function onTablesLoaded(result) {
+      showLoading(false);
+      
+      if (result.success) {
+        tables = result.data || [];
+        const select = document.getElementById('table');
+        
+        tables.forEach(table => {
+          const option = document.createElement('option');
+          option.value = table;
+          option.textContent = table;
+          select.appendChild(option);
+        });
+        
+        if (tables.length === 0) {
+          showMessage('No tables found in this schema', 'info');
+        } else {
+          showMessage(`Loaded ${tables.length} tables`, 'success');
+          document.getElementById('fetchBtn').disabled = false;
+        }
+      } else {
+        showMessage('Error loading tables: ' + result.error, 'error');
+      }
+    }
+    
+    function fetchData() {
+      const database = document.getElementById('database').value;
+      const schema = document.getElementById('schema').value;
+      const table = document.getElementById('table').value;
+      const limit = parseInt(document.getElementById('limit').value) || 0;
+      
+      if (!database || !schema || !table) {
+        showMessage('Please select database, schema, and table', 'error');
+        return;
+      }
+      
+      showLoading(true);
+      showMessage('Fetching data from Snowflake...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(onDataFetched)
+        .withFailureHandler(onError)
+        .fetchTableData(database, schema, table, limit);
+    }
+    
+    function onDataFetched(result) {
+      showLoading(false);
+      
+      if (result.success) {
+        showMessage(result.message, 'success');
+      } else {
+        showMessage('Error fetching data: ' + result.error, 'error');
+      }
+    }
+    
+    function executeQuery() {
+      const query = document.getElementById('customQuery').value.trim();
+      const clearSheet = document.getElementById('clearSheet').checked;
+      
+      if (!query) {
+        showMessage('Please enter a SQL query', 'error');
+        return;
+      }
+      
+      showLoading(true);
+      showMessage('Executing query...', 'info');
+      
+      google.script.run
+        .withSuccessHandler(onQueryExecuted)
+        .withFailureHandler(onError)
+        .executeCustomQuery(query, clearSheet);
+    }
+    
+    function onQueryExecuted(result) {
+      showLoading(false);
+      
+      if (result.success) {
+        showMessage(result.message, 'success');
+      } else {
+        showMessage('Error executing query: ' + result.error, 'error');
+      }
+    }
+    
+    function refreshDatabases() {
+      loadDatabases();
+    }
+    
+    function onError(error) {
+      showLoading(false);
+      showMessage('Error: ' + error.message, 'error');
+    }
+    
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+      
+      // Auto-hide success messages after 5 seconds
+      if (type === 'success') {
+        setTimeout(() => {
+          messageDiv.style.display = 'none';
+        }, 5000);
+      }
+    }
+    
+    function showLoading(show) {
+      document.getElementById('loading').style.display = show ? 'block' : 'none';
+    }
+  </script>
+</body>
+</html>
+

@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <base target="_top">
+  <style>
+    body {
+      font-family: 'Roboto', Arial, sans-serif;
+      padding: 20px;
+      background-color: #f5f5f5;
+    }
+    
+    .container {
+      background: white;
+      padding: 25px;
+      border-radius: 8px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+    
+    h2 {
+      color: #1a73e8;
+      margin-top: 0;
+      font-size: 24px;
+    }
+    
+    .form-group {
+      margin-bottom: 20px;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      color: #5f6368;
+      font-weight: 500;
+      font-size: 14px;
+    }
+    
+    input[type="text"],
+    input[type="password"] {
+      width: 100%;
+      padding: 10px;
+      border: 1px solid #dadce0;
+      border-radius: 4px;
+      font-size: 14px;
+      box-sizing: border-box;
+      transition: border-color 0.2s;
+    }
+    
+    input[type="text"]:focus,
+    input[type="password"]:focus {
+      outline: none;
+      border-color: #1a73e8;
+      box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.1);
+    }
+    
+    .required {
+      color: #d93025;
+    }
+    
+    .helper-text {
+      font-size: 12px;
+      color: #5f6368;
+      margin-top: 4px;
+    }
+    
+    .button-group {
+      display: flex;
+      gap: 10px;
+      margin-top: 25px;
+    }
+    
+    button {
+      flex: 1;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    
+    .btn-primary {
+      background-color: #1a73e8;
+      color: white;
+    }
+    
+    .btn-primary:hover {
+      background-color: #1557b0;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    
+    .btn-secondary {
+      background-color: #f1f3f4;
+      color: #5f6368;
+    }
+    
+    .btn-secondary:hover {
+      background-color: #e8eaed;
+    }
+    
+    .btn-test {
+      background-color: #34a853;
+      color: white;
+    }
+    
+    .btn-test:hover {
+      background-color: #2d8e47;
+    }
+    
+    .message {
+      padding: 12px;
+      border-radius: 4px;
+      margin-top: 15px;
+      display: none;
+      font-size: 14px;
+    }
+    
+    .message.success {
+      background-color: #e6f4ea;
+      color: #137333;
+      border: 1px solid #34a853;
+    }
+    
+    .message.error {
+      background-color: #fce8e6;
+      color: #c5221f;
+      border: 1px solid #d93025;
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 15px;
+      color: #5f6368;
+    }
+    
+    .spinner {
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #1a73e8;
+      border-radius: 50%;
+      width: 30px;
+      height: 30px;
+      animation: spin 1s linear infinite;
+      margin: 0 auto;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>Snowflake Connection</h2>
+    
+    <form id="configForm">
+      <div class="form-group">
+        <label for="account">Account Identifier <span class="required">*</span></label>
+        <input type="text" id="account" required placeholder="myorg-myaccount or account.region.cloud">
+        <div class="helper-text">Example: xy12345.us-east-1 or xy12345.snowflakecomputing.com</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="username">Username <span class="required">*</span></label>
+        <input type="text" id="username" required placeholder="your_username">
+        <div class="helper-text">Required for password auth; can be any value for PAT tokens</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="password">Password / PAT Token <span class="required">*</span></label>
+        <input type="password" id="password" required placeholder="your_password or PAT token">
+        <div class="helper-text">Enter your password OR paste a Personal Access Token (PAT)<br>
+        <strong>SSO Users:</strong> Generate a PAT token in Snowflake (Profile > Personal Access Tokens)</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="warehouse">Warehouse (Optional)</label>
+        <input type="text" id="warehouse" placeholder="COMPUTE_WH">
+        <div class="helper-text">Leave empty to use your default warehouse</div>
+      </div>
+      
+      <div class="form-group">
+        <label for="role">Role (Optional)</label>
+        <input type="text" id="role" placeholder="ACCOUNTADMIN">
+        <div class="helper-text">Leave empty to use your default role</div>
+      </div>
+      
+      <div class="button-group">
+        <button type="button" class="btn-test" onclick="testConnection()">Test Connection</button>
+        <button type="submit" class="btn-primary">Save Configuration</button>
+        <button type="button" class="btn-secondary" onclick="google.script.host.close()">Cancel</button>
+      </div>
+    </form>
+    
+    <div id="loading" class="loading">
+      <div class="spinner"></div>
+      <p>Testing connection...</p>
+    </div>
+    
+    <div id="message" class="message"></div>
+  </div>
+  
+  <script>
+    // Load existing configuration
+    window.onload = function() {
+      google.script.run
+        .withSuccessHandler(populateForm)
+        .getConfiguration();
+    };
+    
+    function populateForm(config) {
+      if (config) {
+        document.getElementById('account').value = config.account || '';
+        document.getElementById('username').value = config.username || '';
+        document.getElementById('password').value = config.password || '';
+        document.getElementById('warehouse').value = config.warehouse || '';
+        document.getElementById('role').value = config.role || '';
+      }
+    }
+    
+    // Handle form submission
+    document.getElementById('configForm').addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      const config = {
+        account: document.getElementById('account').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        warehouse: document.getElementById('warehouse').value.trim(),
+        role: document.getElementById('role').value.trim()
+      };
+      
+      showMessage('Saving configuration...', 'success');
+      
+      google.script.run
+        .withSuccessHandler(onSaveSuccess)
+        .withFailureHandler(onSaveFailure)
+        .saveConfiguration(config);
+    });
+    
+    function testConnection() {
+      // First save the configuration
+      const config = {
+        account: document.getElementById('account').value.trim(),
+        username: document.getElementById('username').value.trim(),
+        password: document.getElementById('password').value,
+        warehouse: document.getElementById('warehouse').value.trim(),
+        role: document.getElementById('role').value.trim()
+      };
+      
+      if (!config.account || !config.username || !config.password) {
+        showMessage('Please fill in all required fields (Account, Username, Password)', 'error');
+        return;
+      }
+      
+      document.getElementById('loading').style.display = 'block';
+      document.getElementById('message').style.display = 'none';
+      
+      // Save and test
+      google.script.run
+        .withSuccessHandler(function(result) {
+          if (result.success) {
+            // Now test the connection
+            google.script.run
+              .withSuccessHandler(onTestSuccess)
+              .withFailureHandler(onTestFailure)
+              .testConnection();
+          } else {
+            document.getElementById('loading').style.display = 'none';
+            showMessage('Error saving configuration: ' + result.message, 'error');
+          }
+        })
+        .withFailureHandler(function(error) {
+          document.getElementById('loading').style.display = 'none';
+          showMessage('Error: ' + error.message, 'error');
+        })
+        .saveConfiguration(config);
+    }
+    
+    function onTestSuccess(result) {
+      document.getElementById('loading').style.display = 'none';
+      
+      if (result.success) {
+        let message = result.message;
+        if (result.details) {
+          message += `\n\nConnection Details:
+- User: ${result.details.user}
+- Role: ${result.details.role}
+- Warehouse: ${result.details.warehouse || 'N/A'}
+- Version: ${result.details.version}`;
+        }
+        showMessage(message, 'success');
+      } else {
+        showMessage('Connection failed: ' + result.error, 'error');
+      }
+    }
+    
+    function onTestFailure(error) {
+      document.getElementById('loading').style.display = 'none';
+      showMessage('Connection test failed: ' + error.message, 'error');
+    }
+    
+    function onSaveSuccess(result) {
+      if (result.success) {
+        showMessage(result.message, 'success');
+        setTimeout(function() {
+          google.script.host.close();
+        }, 1500);
+      } else {
+        showMessage(result.message, 'error');
+      }
+    }
+    
+    function onSaveFailure(error) {
+      showMessage('Error: ' + error.message, 'error');
+    }
+    
+    function showMessage(text, type) {
+      const messageDiv = document.getElementById('message');
+      messageDiv.textContent = text;
+      messageDiv.className = 'message ' + type;
+      messageDiv.style.display = 'block';
+    }
+  </script>
+</body>
+</html>
+
