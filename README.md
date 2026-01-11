@@ -77,7 +77,7 @@ Log in to Snowsight.
 <br/><br/><br/>
 
 
-## CONNECTOR SECURITY DETAILS 
+## SECURITY INFO FOR THIS PLUGIN 
 ### 🔐 Credentials Storage
 **Where They're Stored:**
 
