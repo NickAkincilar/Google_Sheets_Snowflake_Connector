@@ -11,6 +11,7 @@ Install it by making a local copy of the Sheet with the App Script and allowing 
 3. **Refresh the page**
 4. **Snowflake menu appears!**
 5. **Configure your credentials**
+    - **Click menu options: Snowflake > Configure Connection**
     -  **It will ask you for authorization the first time**
     -  **Allow your Google Account to use it**
     -  **When you see a warning about UNVERIFIED APP**
