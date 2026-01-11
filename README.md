@@ -67,9 +67,11 @@ Log in to Snowsight.
 
 3. Scroll down to the Programmatic access tokens section.
 
-4. Click + Generate new token.
+4. Choose the **ROLE** that will be used for access & the expiration **TIME LIMIT**  
 
-5. Copy the token immediately. For security, Snowflake will never show the token secret again after you close the dialog.
+5. Click + Generate new token.
+
+6. Copy the token immediately. For security, Snowflake will never show the token secret again after you close the dialog.
 
 
 <br/><br/><br/>
