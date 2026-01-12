@@ -1,5 +1,16 @@
 # Google Sheets Snowflake Connector
-Snowflake Connector for Google Sheets to fetch data from Snowflake tables or using SQL Queries via Snowflake SQL API endpoints
+Snowflake Connector for Google Sheets to fetch data from Snowflake tables or using SQL Queries via Snowflake SQL API endpoints. THis plug-in is provided as-is and is a personal project not directly associated with Snoflake
+
+## Disclaimer
+
+This project (“Snowflake Connector for Google Sheets”) is an independent, personal project and is **not affiliated with, endorsed by, or supported by Snowflake Inc.**
+
+The plugin is provided **“AS IS”**, without warranty of any kind. Use at your own risk.
+
+“Snowflake” is a trademark of Snowflake Inc. All other trademarks belong to their respective owners.
+
+## License
+This project is licensed under the MIT License. See the LICENSE file for details.
 
 # Quick Installation Guide
 
