@@ -162,16 +162,86 @@
       </div>
       
       <div class="form-group">
-        <label for="username">Username <span class="required">*</span></label>
-        <input type="text" id="username" required placeholder="your_username">
-        <div class="helper-text">Required for password auth; can be any value for PAT tokens</div>
+        <label for="authMethod">Authentication Method <span class="required">*</span></label>
+        <select id="authMethod" onchange="toggleAuthFields()" required>
+          <option value="basic">Basic (Username + Password)</option>
+          <option value="pat">PAT Token (✅ Recommended for SSO)</option>
+          <option value="oauth">OAuth 2.0 (Azure AD / External OAuth)</option>
+        </select>
       </div>
       
-      <div class="form-group">
-        <label for="password">Password / PAT Token <span class="required">*</span></label>
-        <input type="password" id="password" required placeholder="your_password or PAT token">
-        <div class="helper-text">Enter your password OR paste a Personal Access Token (PAT)<br>
-        <strong>SSO Users:</strong> Generate a PAT token in Snowflake (Profile > Personal Access Tokens)</div>
+      <div id="basicAuthFields">
+        <div class="form-group">
+          <label for="username">Username <span class="required">*</span></label>
+          <input type="text" id="username" placeholder="your_username">
+          <div class="helper-text">Required for password auth; can be any value for PAT tokens</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="password">Password / PAT Token <span class="required">*</span></label>
+          <input type="password" id="password" placeholder="your_password or PAT token">
+          <div class="helper-text">Enter your password OR paste a Personal Access Token (PAT)<br>
+          <strong>SSO Users:</strong> Generate a PAT token in Snowflake (Profile > Personal Access Tokens)</div>
+        </div>
+      </div>
+      
+      <div id="oauthFields" style="display:none;">
+        <div style="background-color: #d1ecf1; border: 2px solid #0c5460; border-radius: 4px; padding: 15px; margin-bottom: 20px;">
+          <h4 style="margin: 0 0 10px 0; color: #0c5460;">ℹ️ OAuth 2.0 Requirements</h4>
+          <p style="margin: 0 0 10px 0; font-size: 13px; color: #0c5460;">
+            <strong>Before using OAuth, you must:</strong>
+          </p>
+          <ol style="margin: 5px 0; padding-left: 20px; font-size: 13px; color: #0c5460;">
+            <li>Configure <strong>External OAuth Security Integration</strong> in Snowflake</li>
+            <li>Register an application in <strong>Azure AD</strong></li>
+            <li>Set the correct <strong>Redirect URI</strong> in Azure AD</li>
+            <li>Configure <strong>API permissions</strong> in Azure AD</li>
+          </ol>
+          <p style="margin: 10px 0 0 0; font-size: 12px; color: #0c5460;">
+            <strong>💡 Easier alternative:</strong> Use <strong>PAT Token</strong> - works with SSO, no complex setup required.
+          </p>
+        </div>
+        
+        <div class="form-group">
+          <label for="oauthTenantId">Azure AD Tenant ID <span class="required">*</span></label>
+          <input type="text" id="oauthTenantId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          <div class="helper-text">From Azure Portal > Azure Active Directory > Overview</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="oauthClientId">Client (Application) ID <span class="required">*</span></label>
+          <input type="text" id="oauthClientId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          <div class="helper-text">From App Registration in Azure AD</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="oauthClientSecret">Client Secret <span class="required">*</span></label>
+          <input type="password" id="oauthClientSecret" placeholder="client_secret_value">
+          <div class="helper-text">Generated in App Registration > Certificates & secrets</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="oauthResourceAppId">Snowflake Resource App ID (Optional)</label>
+          <input type="text" id="oauthResourceAppId" placeholder="xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx">
+          <div class="helper-text">Snowflake OAuth Resource Application ID (if using custom scope)</div>
+        </div>
+        
+        <div class="form-group">
+          <label for="oauthScope">OAuth Scope</label>
+          <input type="text" id="oauthScope" value="profile offline_access" placeholder="profile offline_access">
+          <div class="helper-text">Use <strong>profile offline_access</strong> to get UPN claim for user mapping.<br>
+          Snowflake scopes (session:role-any) are not needed for External OAuth.</div>
+        </div>
+        
+        <div style="background-color: #e7f3ff; border-left: 4px solid #2196F3; padding: 12px; margin-top: 15px;">
+          <p style="margin: 0 0 8px 0; font-weight: bold; font-size: 13px;">📋 Azure AD Redirect URI:</p>
+          <code id="redirectUri" style="background: white; padding: 6px 10px; display: block; font-size: 11px; border-radius: 3px; overflow-wrap: break-word;">
+            Loading...
+          </code>
+          <p style="margin: 8px 0 0 0; font-size: 11px; color: #555;">
+            Copy this URL and add it to your Azure AD App Registration > Authentication > Redirect URIs
+          </p>
+        </div>
       </div>
       
       <div class="form-group">
@@ -207,15 +277,46 @@
       google.script.run
         .withSuccessHandler(populateForm)
         .getConfiguration();
+      
+      // Get and display the OAuth redirect URI
+      google.script.run
+        .withSuccessHandler(function(redirectUri) {
+          document.getElementById('redirectUri').textContent = redirectUri;
+        })
+        .withFailureHandler(function() {
+          document.getElementById('redirectUri').textContent = 'Unable to load redirect URI';
+        })
+        .getOAuthRedirectUri();
     };
+    
+    function toggleAuthFields() {
+      const authMethod = document.getElementById('authMethod').value;
+      const basicFields = document.getElementById('basicAuthFields');
+      const oauthFields = document.getElementById('oauthFields');
+      
+      if (authMethod === 'oauth') {
+        basicFields.style.display = 'none';
+        oauthFields.style.display = 'block';
+      } else {
+        basicFields.style.display = 'block';
+        oauthFields.style.display = 'none';
+      }
+    }
     
     function populateForm(config) {
       if (config) {
         document.getElementById('account').value = config.account || '';
+        document.getElementById('authMethod').value = config.authMethod || 'basic';
         document.getElementById('username').value = config.username || '';
         document.getElementById('password').value = config.password || '';
         document.getElementById('warehouse').value = config.warehouse || '';
         document.getElementById('role').value = config.role || '';
+        document.getElementById('oauthTenantId').value = config.oauthTenantId || '';
+        document.getElementById('oauthClientId').value = config.oauthClientId || '';
+        document.getElementById('oauthClientSecret').value = config.oauthClientSecret || '';
+        document.getElementById('oauthResourceAppId').value = config.oauthResourceAppId || '';
+        document.getElementById('oauthScope').value = config.oauthScope || 'session:role-any offline_access';
+        toggleAuthFields();
       }
     }
     
@@ -223,12 +324,19 @@
     document.getElementById('configForm').addEventListener('submit', function(e) {
       e.preventDefault();
       
+      const authMethod = document.getElementById('authMethod').value;
       const config = {
         account: document.getElementById('account').value.trim(),
+        authMethod: authMethod,
         username: document.getElementById('username').value.trim(),
         password: document.getElementById('password').value,
         warehouse: document.getElementById('warehouse').value.trim(),
-        role: document.getElementById('role').value.trim()
+        role: document.getElementById('role').value.trim(),
+        oauthTenantId: document.getElementById('oauthTenantId').value.trim(),
+        oauthClientId: document.getElementById('oauthClientId').value.trim(),
+        oauthClientSecret: document.getElementById('oauthClientSecret').value,
+        oauthResourceAppId: document.getElementById('oauthResourceAppId').value.trim(),
+        oauthScope: document.getElementById('oauthScope').value.trim()
       };
       
       showMessage('Saving configuration...', 'success');
@@ -240,18 +348,73 @@
     });
     
     function testConnection() {
+      // Get auth method
+      const authMethod = document.getElementById('authMethod').value;
+      
       // First save the configuration
       const config = {
         account: document.getElementById('account').value.trim(),
+        authMethod: authMethod,
         username: document.getElementById('username').value.trim(),
         password: document.getElementById('password').value,
         warehouse: document.getElementById('warehouse').value.trim(),
-        role: document.getElementById('role').value.trim()
+        role: document.getElementById('role').value.trim(),
+        oauthTenantId: document.getElementById('oauthTenantId').value.trim(),
+        oauthClientId: document.getElementById('oauthClientId').value.trim(),
+        oauthClientSecret: document.getElementById('oauthClientSecret').value,
+        oauthResourceAppId: document.getElementById('oauthResourceAppId').value.trim(),
+        oauthScope: document.getElementById('oauthScope').value.trim()
       };
       
-      if (!config.account || !config.username || !config.password) {
-        showMessage('Please fill in all required fields (Account, Username, Password)', 'error');
+      // Validate based on auth method
+      if (!config.account) {
+        showMessage('Please fill in Account field', 'error');
         return;
+      }
+      
+      if (authMethod === 'oauth') {
+        // For OAuth, first save config, then check if authorized
+        if (!config.oauthTenantId || !config.oauthClientId || !config.oauthClientSecret) {
+          showMessage('Please fill in all OAuth configuration fields', 'error');
+          return;
+        }
+        
+        showMessage('Checking OAuth authorization status...', 'info');
+        
+        // Save config first
+        google.script.run
+          .withSuccessHandler(function() {
+            // After saving, check if OAuth is authorized
+            google.script.run
+              .withSuccessHandler(function(isAuthorized) {
+                if (isAuthorized) {
+                  // OAuth is authorized, proceed with test
+                  showMessage('Testing OAuth connection...', 'info');
+                  google.script.run
+                    .withSuccessHandler(onTestSuccess)
+                    .withFailureHandler(onTestFailure)
+                    .testConnection();
+                } else {
+                  // OAuth not authorized yet
+                  showMessage('OAuth not authorized. Please:\n1. Click Save Configuration\n2. Use Snowflake menu > OAuth: Authorize\n3. Then test connection', 'error');
+                }
+              })
+              .withFailureHandler(function(error) {
+                showMessage('Error checking OAuth status: ' + error.message, 'error');
+              })
+              .isOAuthAuthorized();
+          })
+          .withFailureHandler(function(error) {
+            showMessage('Error saving config: ' + error.message, 'error');
+          })
+          .saveConfiguration(config);
+        
+        return; // Exit early for OAuth
+      } else {
+        if (!config.username || !config.password) {
+          showMessage('Please fill in Username and Password/PAT Token', 'error');
+          return;
+        }
       }
       
       document.getElementById('loading').style.display = 'block';
