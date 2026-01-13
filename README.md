@@ -46,6 +46,14 @@ Install it by making a local copy of the Sheet with the App Script and allowing 
 - **Bearer Token** (PAT) - Personal Access Token authentication (auto-detected)
 - **OAuth 2.0** (Azure AD / SSO) - Enterprise SSO with automatic token refresh
 
+## Using OAUTH Requires additional setup
+Use [OAUTH SETUP GUIDE](https://github.com/NickAkincilar/Google_Sheets_Snowflake_Connector/blob/main/OAUTH_SETUP_GUIDE.md) document to configure.
+
+
+<br><br>
+
+## USING CONNECTOR
+
 ### 2. Browse and Fetch Data
 
 1. Click **Snowflake** > **Query Data** in the menu
