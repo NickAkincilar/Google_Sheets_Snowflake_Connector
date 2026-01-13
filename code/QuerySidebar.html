@@ -463,7 +463,14 @@
     
     function onError(error) {
       showLoading(false);
-      showMessage('Error: ' + error.message, 'error');
+      
+      // Provide helpful guidance for OAuth errors
+      let errorMessage = 'Error: ' + error.message;
+      if (error.message && error.message.includes('OAuth')) {
+        errorMessage += '\n\nℹ️ To authorize OAuth:\n1. Close this sidebar\n2. Go to Snowflake menu > OAuth: Authorize\n3. Complete authorization\n4. Reopen this sidebar';
+      }
+      
+      showMessage(errorMessage, 'error');
     }
     
     function showMessage(text, type) {
