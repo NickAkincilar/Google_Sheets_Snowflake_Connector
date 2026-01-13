@@ -36,6 +36,8 @@ Install it by making a local copy of the Sheet with the App Script and allowing 
 
 This guide helps you prepare your Snowflake account for use with the Google Sheets Connector.
 
+
+
 ## Prerequisites
 
 You need a Snowflake account with:
@@ -51,7 +53,9 @@ While you don't need a special role to create a token for yourself, there are a 
 
 - **User Type:** Your user must be set to `TYPE = PERSON`(standard for human users) or `TYPE = SERVICE`.
 
-- **Authentication Policy:** Your user must be governed by an authentication policy that explicitly includes `orgname-PROGRAMMATIC_ACCESS_TOKEN` in its allowed methods.
+- **Authentication Policy:**
+    - Your user must be governed by an authentication policy that explicitly includes `orgname-PROGRAMMATIC_ACCESS_TOKEN` in its allowed methods.
+    - Added OAuth2 for Snowflake External Aouth provider.
 
 - **Network Policy:** For the token to actually work, you must be subject to a Network Policy. This is a security requirement to ensure PATs are only used from trusted locations.
 
