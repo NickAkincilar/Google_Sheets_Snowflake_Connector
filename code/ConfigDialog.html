@@ -165,7 +165,7 @@
         <label for="authMethod">Authentication Method <span class="required">*</span></label>
         <select id="authMethod" onchange="toggleAuthFields()" required>
           <option value="basic">Basic (Username + Password)</option>
-          <option value="pat">PAT Token</option>
+          <option value="pat">PAT Token (✅ Recommended for SSO)</option>
           <option value="oauth">OAuth 2.0 (Azure AD / External OAuth)</option>
         </select>
       </div>
@@ -238,6 +238,20 @@
           <code id="redirectUri" style="background: white; padding: 6px 10px; display: block; font-size: 11px; border-radius: 3px; overflow-wrap: break-word;">
             Loading...
           </code>
+          <div id="redirectUriHelp" style="display: none; margin-top: 10px; padding: 10px; background: #fff3cd; border-radius: 4px;">
+            <p style="margin: 0 0 8px 0; font-size: 12px; font-weight: bold; color: #856404;">⚠️ Manual Steps to Get Redirect URI:</p>
+            <ol style="margin: 5px 0; padding-left: 20px; font-size: 11px; color: #856404;">
+              <li>Go to <strong>Extensions → Apps Script</strong></li>
+              <li>Look at the browser URL bar</li>
+              <li>Copy the long ID between <code>/d/</code> and <code>/edit</code></li>
+              <li>Your redirect URI is:<br>
+                <code style="background: white; padding: 2px 6px; display: inline-block; margin-top: 4px;">
+                  https://script.google.com/macros/d/YOUR_SCRIPT_ID/usercallback
+                </code>
+              </li>
+              <li>Replace <code>YOUR_SCRIPT_ID</code> with the ID you copied</li>
+            </ol>
+          </div>
           <p style="margin: 8px 0 0 0; font-size: 11px; color: #555;">
             Copy this URL and add it to your Azure AD App Registration > Authentication > Redirect URIs
           </p>
@@ -281,10 +295,27 @@
       // Get and display the OAuth redirect URI
       google.script.run
         .withSuccessHandler(function(redirectUri) {
-          document.getElementById('redirectUri').textContent = redirectUri;
+          const redirectUriElement = document.getElementById('redirectUri');
+          const helpElement = document.getElementById('redirectUriHelp');
+          
+          if (redirectUri && !redirectUri.includes('Unable to determine')) {
+            // Successfully got redirect URI
+            redirectUriElement.textContent = redirectUri;
+            helpElement.style.display = 'none';
+          } else {
+            // Failed to get redirect URI - show manual instructions
+            redirectUriElement.textContent = 'Unable to load automatically - see instructions below';
+            redirectUriElement.style.backgroundColor = '#fff3cd';
+            helpElement.style.display = 'block';
+          }
         })
-        .withFailureHandler(function() {
-          document.getElementById('redirectUri').textContent = 'Unable to load redirect URI';
+        .withFailureHandler(function(error) {
+          const redirectUriElement = document.getElementById('redirectUri');
+          const helpElement = document.getElementById('redirectUriHelp');
+          
+          redirectUriElement.textContent = 'Error loading - see manual instructions below';
+          redirectUriElement.style.backgroundColor = '#fff3cd';
+          helpElement.style.display = 'block';
         })
         .getOAuthRedirectUri();
     };
