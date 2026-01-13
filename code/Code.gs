@@ -802,7 +802,28 @@ function checkOAuthStatus() {
  * @returns {string} The redirect URI to use in Azure AD App Registration
  */
 function getOAuthRedirectUri() {
-  return ScriptApp.getService().getUrl();
+  try {
+    // Try to get the service URL
+    const serviceUrl = ScriptApp.getService().getUrl();
+    if (serviceUrl) {
+      return serviceUrl;
+    }
+  } catch (error) {
+    Logger.log('Error getting service URL: ' + error.toString());
+  }
+  
+  // Fallback: construct manually from script ID
+  try {
+    const scriptId = ScriptApp.getScriptId();
+    if (scriptId) {
+      return `https://script.google.com/macros/d/${scriptId}/usercallback`;
+    }
+  } catch (error) {
+    Logger.log('Error getting script ID: ' + error.toString());
+  }
+  
+  // Final fallback: return instructions
+  return 'Unable to determine redirect URI automatically. See instructions below.';
 }
 
 /**
